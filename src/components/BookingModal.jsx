@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { registerCustomer, loginCustomer } from '../utils/customerAuth';
 
 const TIME_SLOTS = [
   "07:00 AM", "09:00 AM", "11:00 AM", "01:00 PM", "03:00 PM", "05:00 PM"
@@ -14,10 +15,59 @@ export default function BookingModal({ artist, onClose, onBookingSuccess }) {
   const [step, setStep] = useState(1);
   const [selectedPackage, setSelectedPackage] = useState(artist.packages[0] || null);
   
-  // Custom Calendar state
-  const [selectedDay, setSelectedDay] = useState(null);
-  const [selectedTime, setSelectedTime] = useState(null);
-  
+  // Calendar state — dynamic, real dates
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  // Start browsing from current month
+  const [calendarMonth, setCalendarMonth] = useState(today.getMonth()); // 0-indexed
+  const [calendarYear, setCalendarYear]   = useState(today.getFullYear());
+  const [selectedDate, setSelectedDate]   = useState(null); // a Date object
+  const [selectedTime, setSelectedTime]   = useState(null);
+
+  // How many months ahead we allow browsing (12 months)
+  const MAX_MONTHS_AHEAD = 12;
+
+  // Derived calendar helpers
+  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const daysInCalendarMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
+  // Day-of-week the month starts on (0=Sun…6=Sat), shift to Mon-first grid
+  const rawStartDay  = new Date(calendarYear, calendarMonth, 1).getDay(); // 0=Sun
+  const startOffset  = rawStartDay === 0 ? 6 : rawStartDay - 1; // blanks before day 1
+
+  const canGoBack = () => {
+    return calendarYear > today.getFullYear() ||
+           (calendarYear === today.getFullYear() && calendarMonth > today.getMonth());
+  };
+  const canGoForward = () => {
+    const maxDate = new Date(today.getFullYear(), today.getMonth() + MAX_MONTHS_AHEAD, 1);
+    const curDate = new Date(calendarYear, calendarMonth + 1, 1);
+    return curDate <= maxDate;
+  };
+  const goBack = () => {
+    if (!canGoBack()) return;
+    if (calendarMonth === 0) { setCalendarMonth(11); setCalendarYear(y => y - 1); }
+    else setCalendarMonth(m => m - 1);
+    setSelectedDate(null); setSelectedTime(null);
+  };
+  const goForward = () => {
+    if (!canGoForward()) return;
+    if (calendarMonth === 11) { setCalendarMonth(0); setCalendarYear(y => y + 1); }
+    else setCalendarMonth(m => m + 1);
+    setSelectedDate(null); setSelectedTime(null);
+  };
+
+  const isDayDisabled = (day) => {
+    const d = new Date(calendarYear, calendarMonth, day);
+    if (d < today) return true;                   // past
+    if (d.getDay() === 0) return true;            // Sunday — artist rest day
+    return false;
+  };
+
+  // Formatted date string for receipt (e.g. "15 August 2026")
+  const formattedSelectedDate = selectedDate
+    ? `${selectedDate.getDate()} ${monthNames[selectedDate.getMonth()]} ${selectedDate.getFullYear()}`
+    : null;
+
   // Contact details
   const [clientName, setClientName] = useState('');
   const [clientPhone, setClientPhone] = useState('');
@@ -46,11 +96,6 @@ export default function BookingModal({ artist, onClose, onBookingSuccess }) {
   const [isAuthRegister, setIsAuthRegister] = useState(false);
   const [authError, setAuthError] = useState('');
 
-  // Mock calendar configuration for current month (June 2026)
-  const daysInMonth = 30;
-  const daysArray = Array.from({ length: daysInMonth }, (_, idx) => idx + 1);
-  const bookedDays = [3, 7, 14, 21, 28]; // Sundays / Busy days
-
   const handleToggleAddon = (addon) => {
     if (selectedAddons.find(a => a.id === addon.id)) {
       setSelectedAddons(selectedAddons.filter(a => a.id !== addon.id));
@@ -59,9 +104,7 @@ export default function BookingModal({ artist, onClose, onBookingSuccess }) {
     }
   };
 
-  const getAddonTotal = () => {
-    return selectedAddons.reduce((acc, curr) => acc + curr.price, 0);
-  };
+  const getAddonTotal = () => selectedAddons.reduce((acc, curr) => acc + curr.price, 0);
 
   const calculateTotal = () => {
     if (!selectedPackage) return 0;
@@ -70,7 +113,7 @@ export default function BookingModal({ artist, onClose, onBookingSuccess }) {
 
   const handleNextStep = () => {
     if (step === 1 && !selectedPackage) return;
-    if (step === 2 && (!selectedDay || !selectedTime)) {
+    if (step === 2 && (!selectedDate || !selectedTime)) {
       alert("Please select a date and time slot.");
       return;
     }
@@ -93,33 +136,22 @@ export default function BookingModal({ artist, onClose, onBookingSuccess }) {
     e.preventDefault();
     setAuthError('');
 
+    let result;
     if (isAuthRegister) {
-      if (!authName || !authEmail || !authPhone || !authPassword) {
-        setAuthError("Please fill out all registration fields.");
-        return;
-      }
-      const newCustomer = { name: authName, email: authEmail, phone: authPhone };
-      localStorage.setItem('maharani_customer', JSON.stringify(newCustomer));
-      setCustomerUser(newCustomer);
-      setClientName(authName);
-      setClientPhone(authPhone);
-      setStep(5); // Advance to receipt
+      result = registerCustomer({ name: authName, email: authEmail, phone: authPhone, password: authPassword });
     } else {
-      if (!authEmail || !authPassword) {
-        setAuthError("Please enter your email and password.");
-        return;
-      }
-      // Simulate successful customer login
-      const mockName = authEmail.split('@')[0].replace('.', ' ');
-      const formattedName = mockName.charAt(0).toUpperCase() + mockName.slice(1);
-      const matchedCustomer = { name: formattedName, email: authEmail, phone: '9876543210' };
-      
-      localStorage.setItem('maharani_customer', JSON.stringify(matchedCustomer));
-      setCustomerUser(matchedCustomer);
-      setClientName(formattedName);
-      setClientPhone('9876543210');
-      setStep(5); // Advance to receipt
+      result = loginCustomer({ email: authEmail, password: authPassword });
     }
+
+    if (!result.success) {
+      setAuthError(result.error);
+      return;
+    }
+
+    setCustomerUser(result.customer);
+    setClientName(result.customer.name);
+    setClientPhone(result.customer.phone);
+    setStep(5); // Advance to receipt
   };
 
   const handleCustomerLogout = () => {
@@ -138,10 +170,11 @@ export default function BookingModal({ artist, onClose, onBookingSuccess }) {
       artistName: artist.name,
       packageName: selectedPackage.name,
       packagePrice: selectedPackage.price,
-      selectedDate: `June ${selectedDay}, 2026`,
+      selectedDate: formattedSelectedDate,
       selectedTime,
       clientName,
       clientPhone,
+      clientEmail: customerUser?.email || '',   // ← tag with email for cross-device lookup
       weddingLocation,
       addons: selectedAddons,
       totalPrice: calculateTotal(),
@@ -225,23 +258,75 @@ export default function BookingModal({ artist, onClose, onBookingSuccess }) {
           {/* STEP 2: SELECT DATE/TIME */}
           {step === 2 && (
             <div>
-              <h5 className="font-serif" style={{ fontSize: '18px', marginBottom: '8px', textAlign: 'left' }}>Select Wedding / Event Date</h5>
-              <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '15px', textAlign: 'left' }}>June 2026 Availability Grid</p>
-              
+              <h5 className="font-serif" style={{ fontSize: '18px', marginBottom: '4px', textAlign: 'left' }}>Select Wedding / Event Date</h5>
+              <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '16px', textAlign: 'left' }}>
+                Browse up to 12 months ahead · Sundays unavailable (artist rest day)
+              </p>
+
+              {/* Month navigation header */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <button
+                  onClick={goBack}
+                  disabled={!canGoBack()}
+                  style={{
+                    background: 'none', border: '1px solid var(--border-light)', color: canGoBack() ? 'var(--gold-primary)' : 'var(--text-muted)',
+                    borderRadius: '6px', padding: '6px 14px', cursor: canGoBack() ? 'pointer' : 'not-allowed',
+                    fontSize: '16px', opacity: canGoBack() ? 1 : 0.4,
+                  }}
+                >
+                  ‹
+                </button>
+                <span className="font-serif" style={{ fontSize: '16px', color: '#fff', fontWeight: '600', letterSpacing: '1px' }}>
+                  {monthNames[calendarMonth]} {calendarYear}
+                </span>
+                <button
+                  onClick={goForward}
+                  disabled={!canGoForward()}
+                  style={{
+                    background: 'none', border: '1px solid var(--border-light)', color: canGoForward() ? 'var(--gold-primary)' : 'var(--text-muted)',
+                    borderRadius: '6px', padding: '6px 14px', cursor: canGoForward() ? 'pointer' : 'not-allowed',
+                    fontSize: '16px', opacity: canGoForward() ? 1 : 0.4,
+                  }}
+                >
+                  ›
+                </button>
+              </div>
+
+              {/* Day-of-week header */}
               <div className="calendar-grid">
-                {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => (
-                  <div key={i} className="calendar-header-day">{d}</div>
+                {['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d => (
+                  <div key={d} className="calendar-header-day" style={{ fontSize: '10px' }}>{d}</div>
                 ))}
-                
-                {daysArray.map(day => {
-                  const isBooked = bookedDays.includes(day);
-                  const isSelected = selectedDay === day;
-                  
+
+                {/* Blank offset cells for grid alignment */}
+                {Array.from({ length: startOffset }).map((_, i) => (
+                  <div key={`blank-${i}`} className="calendar-day" style={{ opacity: 0, pointerEvents: 'none' }} />
+                ))}
+
+                {/* Actual day cells */}
+                {Array.from({ length: daysInCalendarMonth }, (_, i) => i + 1).map(day => {
+                  const disabled = isDayDisabled(day);
+                  const d = new Date(calendarYear, calendarMonth, day);
+                  const isSelected = selectedDate &&
+                    selectedDate.getDate() === day &&
+                    selectedDate.getMonth() === calendarMonth &&
+                    selectedDate.getFullYear() === calendarYear;
+                  const isToday = d.getTime() === today.getTime();
+
                   return (
-                    <div 
+                    <div
                       key={day}
-                      onClick={() => !isBooked && setSelectedDay(day)}
-                      className={`calendar-day ${isBooked ? 'disabled' : ''} ${isSelected ? 'selected' : ''}`}
+                      onClick={() => {
+                        if (disabled) return;
+                        setSelectedDate(new Date(calendarYear, calendarMonth, day));
+                        setSelectedTime(null);
+                      }}
+                      className={`calendar-day ${disabled ? 'disabled' : ''} ${isSelected ? 'selected' : ''}`}
+                      style={{
+                        position: 'relative',
+                        fontWeight: isToday ? '700' : undefined,
+                        outline: isToday && !isSelected ? '1px solid rgba(212,175,55,0.5)' : undefined,
+                      }}
                     >
                       {day}
                     </div>
@@ -249,12 +334,24 @@ export default function BookingModal({ artist, onClose, onBookingSuccess }) {
                 })}
               </div>
 
-              {selectedDay && (
-                <div style={{ marginTop: '25px', textAlign: 'left' }}>
-                  <h5 className="font-serif" style={{ fontSize: '16px', marginBottom: '10px' }}>Select Trial or Ceremony Time Slot</h5>
+              {/* Selected date banner */}
+              {selectedDate && (
+                <div style={{
+                  marginTop: '14px', padding: '10px 14px',
+                  background: 'rgba(212,175,55,0.08)', border: '1px solid rgba(212,175,55,0.3)',
+                  borderRadius: '8px', textAlign: 'center', fontSize: '13px',
+                }}>
+                  📅 <strong style={{ color: 'var(--gold-primary)' }}>{formattedSelectedDate}</strong> selected
+                </div>
+              )}
+
+              {/* Time slot picker — shows after date is selected */}
+              {selectedDate && (
+                <div style={{ marginTop: '20px', textAlign: 'left' }}>
+                  <h5 className="font-serif" style={{ fontSize: '16px', marginBottom: '10px' }}>Select Ceremony / Trial Time Slot</h5>
                   <div className="time-slots">
                     {TIME_SLOTS.map(time => (
-                      <div 
+                      <div
                         key={time}
                         className={`time-slot ${selectedTime === time ? 'selected' : ''}`}
                         onClick={() => setSelectedTime(time)}
@@ -465,7 +562,7 @@ export default function BookingModal({ artist, onClose, onBookingSuccess }) {
                   </div>
                   <div className="receipt-row">
                     <span style={{ color: 'var(--text-secondary)' }}>Wedding Schedule:</span>
-                    <strong>June {selectedDay}, 2026 at {selectedTime}</strong>
+                    <strong>{formattedSelectedDate} at {selectedTime}</strong>
                   </div>
                   <div className="receipt-row">
                     <span style={{ color: 'var(--text-secondary)' }}>Client Details:</span>

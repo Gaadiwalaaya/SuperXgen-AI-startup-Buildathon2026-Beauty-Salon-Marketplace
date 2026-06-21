@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import ChatWindow from './ChatWindow';
 
 export default function ArtistDashboard({ artist, bookings, onUpdateBookingStatus }) {
   const [activeTab, setActiveTab] = useState('all');
@@ -7,6 +8,9 @@ export default function ArtistDashboard({ artist, bookings, onUpdateBookingStatu
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancellingBookingId, setCancellingBookingId] = useState(null);
   const [cancelReason, setCancelReason] = useState('');
+
+  // Active chat booking
+  const [activeChat, setActiveChat] = useState(null);
 
   // Filter bookings associated with THIS artist
   const artistBookings = bookings.filter(b => b.artistId === artist.id);
@@ -254,6 +258,20 @@ export default function ArtistDashboard({ artist, bookings, onUpdateBookingStatu
                   </div>
                   
                   <div style={{ display: 'flex', gap: '8px' }}>
+                    {/* ── Chat button (always visible) ── */}
+                    <button
+                      onClick={() => setActiveChat(activeChat?.id === b.id ? null : b)}
+                      style={{
+                        background: activeChat?.id === b.id ? 'rgba(212,175,55,0.2)' : 'rgba(255,255,255,0.05)',
+                        border: activeChat?.id === b.id ? '1px solid var(--gold-primary)' : '1px solid var(--border-light)',
+                        color: activeChat?.id === b.id ? 'var(--gold-primary)' : 'var(--text-secondary)',
+                        padding: '6px 14px', borderRadius: '4px', fontSize: '12px', cursor: 'pointer',
+                        fontWeight: '600',
+                      }}
+                    >
+                      💬 {activeChat?.id === b.id ? 'Close Chat' : 'Chat Client'}
+                    </button>
+
                     {/* Actions for PENDING */}
                     {b.status === 'pending' && (
                       <>
@@ -435,6 +453,15 @@ export default function ArtistDashboard({ artist, bookings, onUpdateBookingStatu
             </div>
           </div>
         </div>
+      )}
+
+      {activeChat && (
+        <ChatWindow
+          booking={activeChat}
+          senderName={artist.name}
+          senderRole="artist"
+          onClose={() => setActiveChat(null)}
+        />
       )}
 
     </div>

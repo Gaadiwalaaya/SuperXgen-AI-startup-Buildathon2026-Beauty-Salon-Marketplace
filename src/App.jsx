@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
+import { artists as importedArtists } from './data/artists';
 import ArtistAuth from './components/ArtistAuth';
 import ArtistPackages from './components/ArtistPackages';
 import ArtistDashboard from './components/ArtistDashboard';
 import ArtistProfile from './components/ArtistProfile';
+import CustomerDashboard from './components/CustomerDashboard';
+import CustomerLoginModal from './components/CustomerLoginModal';
 import Hero from './components/Hero';
 import Directory from './components/Directory';
 import BookingModal from './components/BookingModal';
@@ -11,58 +14,14 @@ import './App.css';
 
 // Bump this version string any time DEFAULT_ARTISTS data changes.
 // It forces localStorage to be cleared and re-seeded with fresh data.
-const DATA_VERSION = "v4-indian-brides";
+const DATA_VERSION = "v5-expanded-artists";
 
-// Initial prebuilt mock artists for demonstration
-const DEFAULT_ARTISTS = [
-  {
-    id: "meenakshi-dutt",
-    name: "Meenakshi Dutt Makeovers",
-    email: "meenakshi@maharani.com",
-    phone: "9811223344",
-    experience: "15 Years",
-    region: "West Delhi",
-    location: "Punjabi Bagh, West Delhi",
-    rating: 4.9,
-    reviewsCount: 342,
-    specialty: "Traditional Indian & Royal Bridal",
-    priceTier: "Premium",
-    image: "/bride1.png",
-    gallery: [
-      "/bride2.png",
-      "/bride3.png",
-      "/bride6.png"
-    ],
-    packages: [
-      { id: "pkg-1", name: "Royal Rajasthani Traditional HD", type: "Traditional", price: 45000, desc: "HD makeup, designer dupatta/lehenga draping, antique jewelry setting, traditional hair bun with fresh jasmine mogra, longwear lash extensions." },
-      { id: "pkg-2", name: "Couture Airbrush Bridal", type: "Airbrush", price: 60000, desc: "Transfer-resistant waterproof airbrush makeup, couture hair styling, premium Mink lashes, full jewelry setting and outfit draping." }
-    ],
-    about: "Meenakshi Dutt is a legend in the bridal industry, known for creating breathtaking traditional royal Indian bridal looks."
-  },
-  {
-    id: "kritika-gill",
-    name: "Kritika Gill Makeup",
-    email: "kritika@maharani.com",
-    phone: "9988776655",
-    experience: "8 Years",
-    region: "South Delhi",
-    location: "Chanakyapuri, South Delhi",
-    rating: 4.8,
-    reviewsCount: 184,
-    specialty: "Minimalist & Contemporary Bridal",
-    priceTier: "Ultra Luxe",
-    image: "/bride3.png",
-    gallery: [
-      "/bride1.png",
-      "/bride2.png",
-      "/bride5.png"
-    ],
-    packages: [
-      { id: "pkg-3", name: "Dewy Pastel Dream HD", type: "Pastel", price: 48000, desc: "Ultra-dewy hydrating base, pastel eye highlights, soft waves or messy bun with fresh baby's breath, draping." }
-    ],
-    about: "Kritika Gill is the go-to artist for modern brides who want to look like themselves but elevated."
-  }
-];
+// Sourced from data/artists.js and decorated with dummy auth fields
+const DEFAULT_ARTISTS = importedArtists.map(a => ({
+  ...a,
+  email: a.email || `${a.id}@maharani.com`,
+  phone: a.phone || "9988776655"
+}));
 
 // Initial mock bookings for the default artists
 const DEFAULT_BOOKINGS = [
@@ -136,8 +95,17 @@ function App() {
   const [registeredArtists, setRegisteredArtists] = useState([]);
   const [bookings, setBookings] = useState([]);
   const [loggedInArtist, setLoggedInArtist] = useState(null);
+
+  // Customer session – synced from localStorage (set by BookingModal auth step)
+  const [loggedInCustomer, setLoggedInCustomer] = useState(() => {
+    const saved = localStorage.getItem('maharani_customer');
+    return saved ? JSON.parse(saved) : null;
+  });
+
+  // Controls the standalone customer login modal
+  const [showCustomerLogin, setShowCustomerLogin] = useState(false);
   
-  // Main page routing: 'home' or 'artistportal'
+  // Main page routing: 'home', 'artistportal', or 'customerdashboard'
   const [activePage, setActivePage] = useState('home');
   
   // Tabs within logged in artist portal: 'profile', 'packages', or 'dashboard'
@@ -259,7 +227,31 @@ function App() {
     setBookings(updated);
     localStorage.setItem('maharani_bookings', JSON.stringify(updated));
     setActiveBookingArtist(null);
+    // Re-sync customer session in case it was set during this booking flow
+    const savedCustomer = localStorage.getItem('maharani_customer');
+    if (savedCustomer) setLoggedInCustomer(JSON.parse(savedCustomer));
     alert(`Congratulations! Your bridal booking request (ID: ${newBooking.id}) for ${newBooking.packageName} has been submitted to ${newBooking.artistName}. They can now manage, approve, or cancel this booking under their Revenue & Approvals portal tab.`);
+  };
+
+  const handleCustomerLoginSuccess = (customer) => {
+    setLoggedInCustomer(customer);
+    setShowCustomerLogin(false);
+    setActivePage('customerdashboard');
+  };
+
+  const handleCustomerLogout = () => {
+    localStorage.removeItem('maharani_customer');
+    setLoggedInCustomer(null);
+    setActivePage('home');
+  };
+
+  const handleCancelBooking = (bookingId) => {
+    if (!window.confirm('Are you sure you want to cancel this booking request?')) return;
+    const updatedList = bookings.map(b =>
+      b.id === bookingId ? { ...b, status: 'cancelled', cancelReason: 'Cancelled by customer' } : b
+    );
+    setBookings(updatedList);
+    localStorage.setItem('maharani_bookings', JSON.stringify(updatedList));
   };
 
   return (
@@ -271,13 +263,15 @@ function App() {
         activePage={activePage}
         setActivePage={setActivePage}
         loggedInArtist={loggedInArtist}
+        loggedInCustomer={loggedInCustomer}
         activeSubPage={activeSubPage}
         setActiveSubPage={setActiveSubPage}
         onLogout={handleLogout}
+        onOpenCustomerLogin={() => setShowCustomerLogin(true)}
       />
 
       <main className="main-content">
-        {activePage === 'home' ? (
+        {activePage === 'home' && (
           /* Premium interactive landing hero & marketplace directory */
           <div>
             <Hero onStartQuiz={() => setActivePage('artistportal')} />
@@ -289,7 +283,18 @@ function App() {
               />
             </div>
           </div>
-        ) : (
+        )}
+
+        {activePage === 'customerdashboard' && loggedInCustomer && (
+          <CustomerDashboard
+            customer={loggedInCustomer}
+            bookings={bookings}
+            onCancelBooking={handleCancelBooking}
+            onLogout={handleCustomerLogout}
+          />
+        )}
+
+        {activePage === 'artistportal' && (
           /* activePage === 'artistportal' */
           <div>
             {!loggedInArtist ? (
@@ -344,6 +349,13 @@ function App() {
           artist={activeBookingArtist}
           onClose={() => setActiveBookingArtist(null)}
           onBookingSuccess={handleBookingSuccess}
+        />
+      )}
+
+      {showCustomerLogin && (
+        <CustomerLoginModal
+          onLoginSuccess={handleCustomerLoginSuccess}
+          onClose={() => setShowCustomerLogin(false)}
         />
       )}
     </div>

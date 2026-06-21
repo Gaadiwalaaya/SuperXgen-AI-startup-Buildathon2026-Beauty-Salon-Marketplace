@@ -316,9 +316,6 @@ export default function Directory({ artists, bookings, onBookArtist }) {
                           alt={artist.name} 
                           style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
                         />
-                        <span className="artist-badge" style={{ position: 'absolute', bottom: '15px', right: '15px', background: 'var(--bg-darker)', color: 'var(--gold-primary)', border: '1px solid var(--border-gold)', padding: '4px 10px', fontSize: '10px', textTransform: 'uppercase', borderRadius: '4px', letterSpacing: '1px' }}>
-                          {artist.priceTier}
-                        </span>
                         <span style={{ position: 'absolute', top: '15px', left: '15px', background: 'rgba(0,0,0,0.7)', color: '#fff', padding: '3px 8px', fontSize: '10px', borderRadius: '4px' }}>
                           📍 {artist.region}
                         </span>
@@ -336,9 +333,14 @@ export default function Directory({ artists, bookings, onBookArtist }) {
                           </span>
                         </div>
 
-                        <h4 className="font-serif" style={{ fontSize: '22px', margin: '0 0 5px 0', color: '#fff' }}>
-                          {artist.name}
-                        </h4>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
+                          <h4 className="font-serif" style={{ fontSize: '22px', margin: 0, color: '#fff' }}>
+                            {artist.name}
+                          </h4>
+                          <span style={{ background: 'rgba(212,175,55,0.1)', color: 'var(--gold-primary)', border: '1px solid rgba(212,175,55,0.3)', padding: '3px 8px', fontSize: '9px', textTransform: 'uppercase', borderRadius: '12px', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>
+                            {artist.priceTier}
+                          </span>
+                        </div>
                         
                         <p style={{ fontSize: '13px', color: 'var(--gold-primary)', fontWeight: '500', margin: '0 0 15px 0' }}>
                           ✨ Specialty: {artist.specialty} ({artist.experience || "Multiple Years Experience"})

@@ -128,5 +128,153 @@ export const artists = [
     reviews: [
       { author: "Meghna Sen", rating: 5, comment: "The most relaxing experience before my wedding. The facial gave me an immediate glow that lasted for weeks. The salon service is unmatched.", date: "May 2026" }
     ]
+  },
+  {
+    id: "parul-garg",
+    name: "Parul Garg Makeup",
+    location: "Gurgaon, NCR",
+    region: "Gurgaon",
+    rating: 4.8,
+    reviewsCount: 520,
+    specialty: "Flawless HD & Traditional Bridal",
+    priceTier: "Premium",
+    experience: "12 Years",
+    brands: "MAC, Huda Beauty, Fenty Beauty",
+    about: "Known for transforming brides with flawless HD makeup that looks stunning in person and on camera. Specializes in traditional Indian bridal looks with mesmerizing eye makeup.",
+    image: "/bride7.png",
+    gallery: ["/bride8.png", "/bride1.png"],
+    packages: [
+      { id: "traditional-hd", name: "Traditional HD Bridal", price: 40000, type: "Traditional", desc: "HD Makeup, luxury hair styling, draping, mink lashes." }
+    ],
+    reviews: [
+      { author: "Sneha", rating: 5, comment: "Parul made me look like a queen!", date: "Jan 2026" }
+    ]
+  },
+  {
+    id: "ojas-rajani",
+    name: "Ojas Rajani Bridal",
+    location: "Bandra, Mumbai",
+    region: "Mumbai",
+    rating: 4.9,
+    reviewsCount: 310,
+    specialty: "Celebrity Glam & South Indian Bridal",
+    priceTier: "Ultra Luxe",
+    experience: "18 Years",
+    brands: "Dior, Chanel, Tom Ford",
+    about: "Celebrity makeup artist Ojas Rajani brings Bollywood glamour to your wedding day. Expert in both North and South Indian traditional bridal looks.",
+    image: "/bride8.png",
+    gallery: ["/bride7.png", "/bride2.png"],
+    packages: [
+      { id: "celeb-glam", name: "Celebrity Bridal Glam", price: 75000, type: "Glam", desc: "Signature celebrity makeup, intricate hair, luxury draping." }
+    ],
+    reviews: [
+      { author: "Ananya", rating: 5, comment: "Felt like a Bollywood star on my big day.", date: "Feb 2026" }
+    ]
+  },
+  {
+    id: "the-groom-studio",
+    name: "The Royal Groom Studio",
+    location: "Defence Colony, South Delhi",
+    region: "South Delhi",
+    rating: 4.8,
+    reviewsCount: 145,
+    specialty: "Premium Grooming & Turbans",
+    priceTier: "Premium",
+    experience: "8 Years",
+    brands: "Tom Ford, Kiehl's, Beardo",
+    about: "Specialized in luxury grooming for grooms. From flawless subtle HD makeup to perfect safa/turban tying and beard styling for a majestic royal look.",
+    image: "/groom1.png",
+    gallery: ["/groom2.png", "/groom3.png"],
+    packages: [
+      { id: "royal-groom", name: "Royal Groom Package", price: 15000, type: "Grooming", desc: "HD subtle makeup, beard styling, hair setting, safa tying, and draping assistance." },
+      { id: "groom-spa", name: "Pre-Wedding Groom Spa", price: 8000, type: "Pre-Bridal", desc: "Deep cleansing facial, beard spa, and relaxing massage." }
+    ],
+    reviews: [
+      { author: "Rahul Singh", rating: 4.9, comment: "The turban tying was perfect and the subtle makeup made my skin look flawless in photos.", date: "Dec 2025" }
+    ]
+  },
+  {
+    id: "dapper-groom",
+    name: "The Dapper Groom Lounge",
+    location: "Vasant Kunj, South Delhi",
+    region: "South Delhi",
+    rating: 4.7,
+    reviewsCount: 98,
+    specialty: "Modern Groom Makeovers",
+    priceTier: "Standard",
+    experience: "6 Years",
+    brands: "MAC, Clinique Men",
+    about: "Modern grooming for the contemporary Indian groom. Subtle touch-ups to ensure you look your absolute best without looking 'made up'.",
+    image: "/groom2.png",
+    gallery: ["/groom1.png", "/groom4.png"],
+    packages: [
+      { id: "modern-groom", name: "Modern Groom Essentials", price: 12000, type: "Grooming", desc: "Skin prep, color correction, hair styling, and outfit setting." }
+    ],
+    reviews: [
+      { author: "Karan", rating: 4.5, comment: "Very professional. Kept it natural just like I asked.", date: "Mar 2026" }
+    ]
+  },
+  {
+    id: "elegant-groom",
+    name: "Elegant Groom & Styling",
+    location: "Lajpat Nagar, South Delhi",
+    region: "South Delhi",
+    rating: 4.6,
+    reviewsCount: 112,
+    specialty: "Traditional Groom Styling",
+    priceTier: "Standard",
+    experience: "10 Years",
+    brands: "Kama Ayurveda, Bombay Shaving Company",
+    about: "Traditional grooming services focusing on classic Indian groom aesthetics. Expert turban styling and skin radiance.",
+    image: "/groom3.png",
+    gallery: ["/groom4.png", "/groom2.png"],
+    packages: [
+      { id: "classic-groom", name: "Classic Indian Groom", price: 10000, type: "Grooming", desc: "Traditional grooming, turban tying, skin polish." }
+    ],
+    reviews: [
+      { author: "Amit", rating: 4.8, comment: "Great service, very punctual on the wedding morning.", date: "Nov 2025" }
+    ]
+  },
+  {
+    id: "maharaja-groom",
+    name: "Maharaja Grooming Co.",
+    location: "Rajouri Garden, West Delhi",
+    region: "West Delhi",
+    rating: 4.9,
+    reviewsCount: 210,
+    specialty: "Luxury Sherwani Styling & Grooming",
+    priceTier: "Premium",
+    experience: "15 Years",
+    brands: "Forest Essentials, Dior Men",
+    about: "The ultimate luxury experience for grooms. We ensure your skin glows and your attire is perfectly set for the grand entrance.",
+    image: "/groom4.png",
+    gallery: ["/groom1.png", "/groom3.png"],
+    packages: [
+      { id: "maharaja-package", name: "The Maharaja Experience", price: 20000, type: "Grooming", desc: "Luxury skin prep, HD airbrush for men, hair/beard perfection, royal safa tying." }
+    ],
+    reviews: [
+      { author: "Vikram", rating: 5, comment: "Felt like a king. The team is fantastic.", date: "Oct 2025" }
+    ]
+  },
+  {
+    id: "leena-bhushan",
+    name: "Leena Bhushan Makeup",
+    location: "Noida, UP",
+    region: "Noida",
+    rating: 4.8,
+    reviewsCount: 430,
+    specialty: "Signature Glazed Bridal Look",
+    priceTier: "Premium",
+    experience: "9 Years",
+    brands: "Charlotte Tilbury, NARS, MAC",
+    about: "Famous for her signature glazed, glowing bridal looks that enhance natural beauty with a touch of modern glam.",
+    image: "/bride7.png",
+    gallery: ["/bride8.png", "/bride3.png"],
+    packages: [
+      { id: "glazed-bridal", name: "Glazed Bridal HD", price: 45000, type: "Modern", desc: "Signature glow makeup, modern hair styling, premium draping." }
+    ],
+    reviews: [
+      { author: "Neha", rating: 4.9, comment: "The glow was unreal! Highly recommend.", date: "April 2026" }
+    ]
   }
 ];
