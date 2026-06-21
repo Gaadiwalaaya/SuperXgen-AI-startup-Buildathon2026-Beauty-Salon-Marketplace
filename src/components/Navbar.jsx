@@ -8,10 +8,12 @@ export default function Navbar({
   activeSubPage, 
   setActiveSubPage, 
   onLogout,
-  onOpenCustomerLogin
+  onOpenCustomerLogin,
+  theme,
+  toggleTheme
 }) {
   return (
-    <header className="navbar" style={{ display: 'flex', flexDirection: 'column', padding: '15px 30px', borderBottom: '1px solid var(--border-gold)', background: 'rgba(10, 10, 10, 0.95)', backdropFilter: 'blur(10px)', position: 'sticky', top: 0, zIndex: 100 }}>
+    <header className="navbar" style={{ display: 'flex', flexDirection: 'column', padding: '15px 30px', borderBottom: '1px solid var(--border-gold)', background: 'var(--bg-glass)', backdropFilter: 'blur(10px)', position: 'sticky', top: 0, zIndex: 100 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
         <div className="nav-brand" style={{ cursor: 'pointer' }} onClick={() => setActivePage('home')}>
           <h1 className="gold-gradient-text font-serif" style={{ fontSize: '24px', margin: 0, letterSpacing: '2px' }}>MAHARANI BRIDAL</h1>
@@ -21,6 +23,17 @@ export default function Navbar({
         </div>
         
         <nav className="nav-links" style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+          <button 
+            onClick={toggleTheme}
+            style={{
+              background: 'transparent', border: '1px solid var(--border-gold)', color: 'var(--text-primary)', 
+              borderRadius: '50%', width: '36px', height: '36px', cursor: 'pointer', fontSize: '18px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'var(--transition-micro)'
+            }}
+            title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
+          >
+            {theme === 'dark' ? '☀️' : '🌙'}
+          </button>
           <button 
             className={`nav-link ${activePage === 'home' ? 'active' : ''}`}
             onClick={() => setActivePage('home')}

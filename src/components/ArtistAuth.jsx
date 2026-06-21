@@ -178,8 +178,9 @@ export default function ArtistAuth({ onLoginSuccess, registeredArtists, setRegis
                 type="button"
                 style={{ fontSize: '12px', color: 'var(--gold-primary)' }}
                 onClick={() => {
-                  setLoginEmail('meenakshi@maharani.com');
-                  setError('');
+                  let demoArtist = registeredArtists.find(a => a.email.toLowerCase() === 'meenakshi@maharani.com');
+                  if (!demoArtist) demoArtist = registeredArtists[0];
+                  onLoginSuccess(demoArtist);
                 }}
               >
                 💡 Click for Demo Autologin (Meenakshi Dutt)

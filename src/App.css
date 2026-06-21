@@ -58,6 +58,18 @@
   border-color: rgba(212, 175, 55, 0.35);
 }
 
+/* AI Style Finder Animations */
+@keyframes pulseLogo {
+  0% { transform: scale(1); box-shadow: 0 0 15px var(--gold-primary); }
+  50% { transform: scale(1.1); box-shadow: 0 0 30px var(--gold-primary); }
+  100% { transform: scale(1); box-shadow: 0 0 15px var(--gold-primary); }
+}
+
+.pulse-ring {
+  animation: pulseLogo 1.5s ease-in-out infinite;
+  border: 1px solid var(--gold-primary);
+}
+
 /* Luxury Buttons */
 .luxe-btn {
   display: inline-flex;

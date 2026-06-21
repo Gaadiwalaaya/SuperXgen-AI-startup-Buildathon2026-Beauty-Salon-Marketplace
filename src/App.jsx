@@ -10,6 +10,7 @@ import CustomerLoginModal from './components/CustomerLoginModal';
 import Hero from './components/Hero';
 import Directory from './components/Directory';
 import BookingModal from './components/BookingModal';
+import AIStyleFinder from './components/AIStyleFinder';
 import './App.css';
 
 // Bump this version string any time DEFAULT_ARTISTS data changes.
@@ -104,6 +105,7 @@ function App() {
 
   // Controls the standalone customer login modal
   const [showCustomerLogin, setShowCustomerLogin] = useState(false);
+  const [theme, setTheme] = useState('dark');
   
   // Main page routing: 'home', 'artistportal', or 'customerdashboard'
   const [activePage, setActivePage] = useState('home');
@@ -137,7 +139,25 @@ function App() {
       setBookings(DEFAULT_BOOKINGS);
       localStorage.setItem('maharani_bookings', JSON.stringify(DEFAULT_BOOKINGS));
     }
+
+    // Load theme
+    const savedTheme = localStorage.getItem('maharani_theme') || 'dark';
+    setTheme(savedTheme);
   }, []);
+
+  // Apply theme class to body
+  useEffect(() => {
+    if (theme === 'light') {
+      document.body.classList.add('light-mode');
+    } else {
+      document.body.classList.remove('light-mode');
+    }
+    localStorage.setItem('maharani_theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+  };
 
   const handleLoginSuccess = (artist) => {
     setLoggedInArtist(artist);
@@ -268,13 +288,15 @@ function App() {
         setActiveSubPage={setActiveSubPage}
         onLogout={handleLogout}
         onOpenCustomerLogin={() => setShowCustomerLogin(true)}
+        theme={theme}
+        toggleTheme={toggleTheme}
       />
 
       <main className="main-content">
         {activePage === 'home' && (
           /* Premium interactive landing hero & marketplace directory */
           <div>
-            <Hero onStartQuiz={() => setActivePage('artistportal')} />
+            <Hero onStartQuiz={() => setActivePage('ai-discovery')} />
             <div style={{ padding: '0 30px 60px 30px' }}>
               <Directory 
                 artists={registeredArtists}
@@ -283,6 +305,17 @@ function App() {
               />
             </div>
           </div>
+        )}
+
+        {activePage === 'ai-discovery' && (
+          <AIStyleFinder 
+            artists={registeredArtists}
+            onBookArtist={(artist) => {
+              setActiveBookingArtist(artist);
+              setActivePage('home'); // Go back to home where the modal opens over the directory
+            }}
+            onCancel={() => setActivePage('home')}
+          />
         )}
 
         {activePage === 'customerdashboard' && loggedInCustomer && (
